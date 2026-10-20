@@ -1,0 +1,728 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0b141a">
+<title>Bhatsapp</title>
+<style>
+:root{font-family:Inter,system-ui,sans-serif;color:#e9edef;background:#0b141a}
+*{box-sizing:border-box}
+body{margin:0;min-width:320px}
+button,input,textarea{font:inherit}
+button{cursor:pointer}
+.hidden{display:none!important}
+.auth{min-height:100vh;display:grid;place-items:center;padding:20px;background:radial-gradient(ellipse at 60% 0,#1b4547,transparent 55%),#0b141a}
+.card{width:min(100%,410px);padding:30px;border:1px solid #2a4046;border-radius:22px;background:#12232a;box-shadow:0 20px 80px #0006}
+.logo{width:52px;height:52px;display:grid;place-items:center;border-radius:16px;background:#00a884;color:#06352c;font-size:28px;font-weight:900}
+.eyebrow{font-size:10px;letter-spacing:.18em;color:#00c99e;font-weight:800;margin:22px 0 7px}
+.card h1{font-size:34px;margin:0}
+.muted{color:#8da3aa;font-size:13px;line-height:1.6}
+.form{display:flex;flex-direction:column;gap:9px;margin-top:22px}
+.form label,.modal label{font-size:12px;color:#b7c6ca;margin-top:5px}
+.form input,.modal input,.modal textarea{padding:13px;border:1px solid #30474e;border-radius:10px;background:#0c191e;color:#fff;outline:0}
+.form input:focus,.modal input:focus,.modal textarea:focus{border-color:#00a884}
+.primary{border:0;border-radius:10px;padding:13px;background:#00a884;color:#062d26;font-weight:800;margin-top:10px}
+.error{color:#ff8f8f;font-size:12px;min-height:15px}
+.switch{text-align:center;font-size:12px;color:#9bb0b5;margin-top:20px}
+.switch button{background:none;border:0;color:#00c99e;font-weight:800}
+
+/* Main app layout */
+.app{height:100dvh;min-height:500px;display:grid;grid-template-columns:350px 1fr;max-width:1500px;margin:auto;background:#101d24;overflow:hidden}
+.side{display:flex;flex-direction:column;min-width:0;min-height:0;border-right:1px solid #2a3b41;background:#101d24}
+.top{height:64px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:0 16px;background:#202e35}
+.brand{display:flex;align-items:center;gap:9px;font-weight:800}
+.brand .logo{width:33px;height:33px;border-radius:10px;font-size:18px}
+.actions{display:flex;gap:1px}
+.icon{border:0;background:transparent;color:#bdcbd0;font-size:21px;border-radius:50%;width:36px;height:36px}
+.profile{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid #27383e;flex-shrink:0}
+.avatar{width:42px;height:42px;flex-shrink:0;border-radius:50%;display:grid;place-items:center;background:linear-gradient(140deg,#16c6a0,#08766c);color:#06352d;font-weight:900;overflow:hidden}
+.profilecopy{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+.profilecopy strong{font-size:12px}
+.profilecopy small{font-size:10px;color:#8ba0a7;overflow:hidden;text-overflow:ellipsis}
+.logout{font-size:10px;color:#a9bec3;background:transparent;border:1px solid #344a51;border-radius:8px;padding:7px}
+.search{margin:13px;display:flex;gap:9px;align-items:center;padding:0 11px;background:#202e35;border-radius:10px;color:#91a8ae;flex-shrink:0}
+.search input{width:100%;min-width:0;padding:12px 0;background:transparent;border:0;outline:0;color:#fff;font-size:12px}
+.results{margin:-6px 13px 8px;max-height:200px;overflow:auto;background:#1a2b32;border:1px solid #30464d;border-radius:10px;flex-shrink:0}
+.result{width:100%;display:flex;gap:9px;align-items:center;padding:7px;border:0;border-bottom:1px solid #2b3c42;background:transparent;color:#fff;text-align:left}
+.result .rtext{flex:1;display:flex;flex-direction:column;gap:4px}
+.result small{color:#8ba1a8}
+.result-open{flex:1;min-width:0;display:flex;gap:9px;align-items:center;border:0;background:transparent;color:#fff;text-align:left}
+.add-contact{border:1px solid #36534e;border-radius:8px;padding:7px;background:transparent;color:#61d8b8;font-size:10px;white-space:nowrap}
+.heading{font-size:10px;letter-spacing:.16em;color:#71878e;padding:10px 17px;flex-shrink:0}
+.chatlist{overflow:auto;flex:1;min-height:0}
+.chatrow{display:flex;gap:10px;align-items:center;width:100%;padding:12px;border:0;border-bottom:1px solid #1c2b31;background:transparent;color:#e9edef;text-align:left}
+.chatrow.selected,.chatrow:hover{background:#20363b}
+.chatrow.selected{box-shadow:inset 3px 0 #00a884}
+.rowtext{flex:1;min-width:0;display:flex;flex-direction:column;gap:5px}
+.rowtext strong{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rowtext small{font-size:10px;color:#8ba0a6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* Footer is at the bottom, below the navigation */
+.footer{flex-shrink:0;text-align:center;font-size:10px;color:#71878e;padding:10px 5px calc(10px + env(safe-area-inset-bottom));border-top:1px solid #26383e;line-height:1.8}
+.footer .made{display:block;color:#00c99e;font-weight:700}
+
+/* Desktop bottom navigation */
+.bottom-nav{display:flex;align-items:center;justify-content:space-around;gap:4px;padding:8px;border-top:1px solid #26383e;background:#17262d;flex-shrink:0}
+.nav-btn{flex:1;min-width:0;border:0;border-radius:10px;padding:9px 4px;background:transparent;color:#9aafb5;font-size:11px;display:flex;flex-direction:column;align-items:center;gap:4px}
+.nav-btn .nav-icon{font-size:19px}
+.nav-btn.active{background:#203b3b;color:#00c99e}
+
+/* Conversation panel */
+.conversation{min-width:0;min-height:0;display:flex;flex-direction:column;position:relative;background:radial-gradient(#1a2b31 1px,transparent 1px);background-size:20px 20px}
+.welcome{margin:auto;text-align:center;max-width:430px;padding:30px}
+.welcome .logo{margin:auto;width:88px;height:88px;font-size:48px;border-radius:27px;box-shadow:0 20px 60px #00a88425}
+.welcome h2{font-size:22px}
+.welcome p{font-size:13px;color:#8da3aa;line-height:1.7}
+.active{display:flex;flex-direction:column;height:100%;min-height:0}
+.chathead{height:65px;flex-shrink:0;display:flex;align-items:center;gap:10px;padding:0 16px;background:#202e35}
+.chathead .title{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+.title strong{font-size:13px}
+.title small{font-size:10px;color:#8da3aa}
+.messages{flex:1;min-height:0;overflow:auto;padding:20px clamp(12px,4vw,45px);display:flex;flex-direction:column;gap:9px;background:#0b171dd9}
+.line{display:flex}
+.line.mine{justify-content:flex-end}
+.bubble{max-width:min(80%,560px);padding:9px 11px 6px;background:#1d3038;border-radius:5px 13px 13px;overflow-wrap:anywhere;box-shadow:0 2px 3px #0002}
+.mine .bubble{background:#075e53;border-radius:13px 5px 13px 13px}
+.sender{font-size:10px;color:#5ce0bc;font-weight:800;margin-bottom:5px}
+.msg{font-size:13px;line-height:1.5}
+.time{display:block;text-align:right;font-size:9px;color:#91aaa9;margin-top:5px}
+.composer{display:flex;align-items:flex-end;gap:9px;padding:12px 14px 5px;background:#17262d}
+.composer textarea{flex:1;min-width:0;max-height:110px;resize:none;padding:12px;border:0;outline:0;border-radius:11px;background:#26383f;color:#fff;font-size:13px}
+.send{width:42px;height:42px;border:0;border-radius:50%;background:#00a884;color:#062e27;font-weight:900;font-size:18px}
+.note{text-align:center;font-size:9px;color:#637a81;background:#17262d;padding:2px 8px 9px}
+.empty{text-align:center;color:#71878e;font-size:12px;line-height:1.7;padding:22px 15px}
+.modal{width:min(92vw,420px);padding:22px;border:1px solid #30464d;border-radius:18px;background:#14252c;color:#e9edef}
+.modal::backdrop{background:#0009;backdrop-filter:blur(4px)}
+.modal form{display:flex;flex-direction:column;gap:9px}
+.modalhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:15px}
+.modal h2{font-size:21px;margin:0}
+.toast{position:fixed;bottom:22px;left:50%;transform:translate(-50%,20px);opacity:0;pointer-events:none;background:#20363c;color:#fff;border:1px solid #36545b;border-radius:10px;padding:12px 15px;font-size:12px;max-width:90vw;z-index:100;transition:.2s}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.profile-edit-preview{display:flex;justify-content:center;padding:8px 0 12px}
+.profile-preview,.big-avatar{width:88px;height:88px;border-radius:50%;object-fit:cover}
+.big-avatar{font-size:25px}
+.secondary-btn{border:1px solid #354d54;border-radius:10px;background:transparent;color:#c3d1d4;padding:11px;font-weight:700}
+.contacts-list{display:flex;flex-direction:column;gap:8px;max-height:50vh;overflow:auto}
+.contact-item{display:flex;align-items:center;gap:10px;padding:9px;border:1px solid #2b4148;border-radius:11px}
+.contact-item .contact-copy{min-width:0;flex:1;display:flex;flex-direction:column;gap:4px}
+.contact-copy strong{font-size:12px}.contact-copy small{font-size:10px;color:#8da3aa}
+.contact-item button{border:0;border-radius:8px;padding:8px;background:#00a884;color:#062d26;font-weight:800;font-size:11px}
+.bot-messages{height:260px;max-height:45vh;overflow:auto;display:flex;flex-direction:column;gap:8px;padding:10px;background:#0c191e;border-radius:12px}
+.bot-msg{max-width:88%;padding:10px;border-radius:10px;background:#20353c;font-size:12px;line-height:1.55;white-space:pre-wrap;overflow-wrap:anywhere}
+.bot-msg.mine{align-self:flex-end;background:#075e53}
+.bot-composer{display:flex;gap:8px;margin-top:10px}
+.bot-composer input{flex:1;min-width:0;padding:11px;border:1px solid #30474e;border-radius:10px;background:#0c191e;color:#fff}
+.bot-composer .primary{margin:0}
+.streak-pill{font-size:9px;color:#ffce7a;white-space:nowrap}
+.back{display:none}
+
+/* Mobile: one panel at a time, bottom navigation stays fixed */
+@media(max-width:720px){
+ .app{grid-template-columns:1fr;position:relative}
+ .side{height:100%;border-right:0}
+ .conversation{display:none}
+ .app.chat-open .side{display:none}
+ .app.chat-open .conversation{display:flex;height:100dvh}
+ .back{display:block!important}
+ .chathead{padding:0 10px}
+ .messages{padding:16px 10px}
+ .bubble{max-width:88%}
+ .top{padding:0 12px}
+ .profile{padding:10px 12px}
+ .search{margin:10px 12px}
+ .heading{padding:8px 14px}
+ .bottom-nav{padding:6px 5px calc(6px + env(safe-area-inset-bottom))}
+ .nav-btn{padding:7px 2px;font-size:10px}
+ .nav-btn .nav-icon{font-size:20px}
+ .footer{font-size:9px}
+}
+</style>
+</head>
+<body>
+
+<section id="auth" class="auth">
+ <div class="card">
+  <div class="logo">B</div>
+  <p class="eyebrow">YOUR CAMPUS. YOUR CHAT.</p>
+  <h1>Bhatsapp</h1>
+  <p class="muted">Private chats and college groups, in real time.</p>
+  <form id="authform" class="form">
+   <label id="namelabel" class="hidden">Your name</label>
+   <input id="name" class="hidden" placeholder="Full name" autocomplete="name">
+   <label>Email address</label>
+   <input id="email" type="email" required placeholder="you@example.com" autocomplete="email">
+   <label>Password</label>
+   <input id="password" type="password" minlength="6" required placeholder="At least 6 characters" autocomplete="current-password">
+   <button id="authsubmit" class="primary">Log in</button>
+  </form>
+  <p id="autherror" class="error"></p>
+  <div class="switch"><span id="switchtext">New here?</span> <button id="switch">Create account</button></div>
+ </div>
+</section>
+
+<section id="app" class="app hidden">
+ <aside class="side">
+  <header class="top">
+   <div class="brand"><span class="logo">B</span> Bhatsapp</div>
+   <div class="actions">
+    <button id="contactsbtn" class="icon" title="Contacts">♧</button>
+    <button id="groupbtn" class="icon" title="Create group">＋</button>
+    <button id="botbtn" class="icon" title="Campus Bot">🤖</button>
+    <button id="profilebtn" class="icon" title="Settings and profile">⚙</button>
+   </div>
+  </header>
+  <div class="profile">
+   <div id="myavatar" class="avatar">B</div>
+   <div class="profilecopy"><strong id="myname">Student</strong><small id="myemail">Your profile</small></div>
+   <button id="streakbtn" class="icon" title="Daily streak">🔥</button>
+   <button id="logout" class="logout">Log out</button>
+  </div>
+  <label class="search">⌕ <input id="search" placeholder="Search by registered mobile number"></label>
+  <div id="results" class="results hidden"></div>
+  <div id="listheading" class="heading">CHATS</div>
+  <div id="chatlist" class="chatlist"><div class="empty">Your chats will appear here.</div></div>
+  <nav class="bottom-nav" aria-label="Main navigation">
+   <button class="nav-btn active" data-tab="chats"><span class="nav-icon">☏</span><span>Chats</span></button>
+   <button class="nav-btn" data-tab="groups"><span class="nav-icon">♧</span><span>Groups</span></button>
+   <button class="nav-btn" data-tab="bot"><span class="nav-icon">🤖</span><span>Chatbot</span></button>
+   <button class="nav-btn" data-tab="settings"><span class="nav-icon">⚙</span><span>Settings</span></button>
+  </nav>
+  <footer class="footer">
+   © 2026 Bhatsapp. All rights reserved.
+   <span class="made">Made by Vivek</span>
+  </footer>
+ </aside>
+ <main class="conversation">
+  <div id="welcome" class="welcome">
+   <div class="logo">B</div><h2>Welcome to Bhatsapp</h2>
+   <p>Select Chats or Groups below to view conversations. Search a classmate by registered mobile number to start chatting.</p>
+  </div>
+  <div id="active" class="active hidden">
+   <header class="chathead">
+    <button id="back" class="icon back">‹</button>
+    <div id="chatavatar" class="avatar">B</div>
+    <div class="title"><strong id="chattitle">Chat</strong><small id="chatsub">Private conversation</small></div>
+    <button id="chatinfo" class="icon" title="Chat details">ⓘ</button>
+   </header>
+   <div id="messages" class="messages"></div>
+   <form id="sendform" class="composer">
+    <textarea id="message" rows="1" placeholder="Type a message…" required></textarea>
+    <button id="send" class="send" type="submit">➤</button>
+   </form>
+   <div class="note">Messages update in real time.</div>
+  </div>
+</main>
+</section>
+
+<dialog id="profilemodal" class="modal">
+ <div class="modalhead"><h2>Edit profile</h2><button type="button" class="icon close" data-close="profilemodal">×</button></div>
+ <form id="profileform">
+  <div class="profile-edit-preview"><img id="profile-preview" class="profile-preview hidden" alt="Profile preview"><div id="profile-preview-fallback" class="avatar big-avatar">B</div></div>
+  <label>Profile photo</label><input id="profile-photo" type="file" accept="image/*">
+  <label>Full name</label><input id="pname" required minlength="2" maxlength="60">
+  <label>Mobile number</label><input id="pphone" required inputmode="tel" placeholder="Registered mobile number">
+  <label>Bio</label><textarea id="pbio" rows="3" maxlength="160" placeholder="A little about you…"></textarea>
+  <button class="primary" type="submit">Save profile</button>
+ </form>
+</dialog>
+<dialog id="setupmodal" class="modal">
+ <div class="modalhead"><h2>Set up your profile</h2><button type="button" class="icon close" data-close="setupmodal">×</button></div>
+ <p class="muted">Add a photo and short bio so friends can recognise you. You can do this later.</p>
+ <form id="setupform">
+  <div class="profile-edit-preview"><img id="setup-preview" class="profile-preview hidden" alt="Profile preview"><div id="setup-preview-fallback" class="avatar big-avatar">B</div></div>
+  <label>Profile photo</label><input id="setup-photo" type="file" accept="image/*">
+  <label>Bio</label><textarea id="setup-bio" rows="3" maxlength="160" placeholder="A little about you…"></textarea>
+  <button class="primary" type="submit">Save profile</button>
+  <button class="secondary-btn" id="skipsetup" type="button">Skip for now</button>
+  <button class="secondary-btn" id="skipsetup2" type="button">Continue without photo</button>
+ </form>
+</dialog>
+<dialog id="groupmodal" class="modal">
+ <div class="modalhead"><h2>Create a group</h2><button type="button" class="icon close" data-close="groupmodal">×</button></div>
+ <form id="groupform">
+  <label>Group name</label><input id="gname" required maxlength="60" placeholder="e.g. FY Computer Engineering">
+  <label>Members' registered mobile numbers (comma-separated)</label><textarea id="gphones" rows="3" placeholder="9876543210, 9123456780"></textarea>
+  <button class="primary" type="submit">Create group</button>
+ </form>
+</dialog>
+<dialog id="contactmodal" class="modal">
+ <div class="modalhead"><h2>Your contacts</h2><button type="button" class="icon close" data-close="contactmodal">×</button></div>
+ <p class="muted">Contacts are saved inside this app on this device.</p><div id="contactslist" class="contacts-list"></div>
+</dialog>
+<dialog id="botmodal" class="modal">
+ <div class="modalhead"><div><p class="eyebrow">30-DAY STREAK REWARD</p><h2>Campus Bot</h2></div><button type="button" class="icon close" data-close="botmodal">×</button></div>
+ <p id="bot-status" class="muted"></p>
+ <div id="bot-messages" class="bot-messages"></div>
+ <form id="botform" class="bot-composer"><input id="bot-input" placeholder="Ask about studying, habits, college…" autocomplete="off"><button class="primary" type="submit">Send</button></form>
+ <p class="muted tiny">Built-in replies are included. A true AI chatbot needs a secure backend and an AI API key.</p>
+</dialog>
+<div id="toast" class="toast"></div>
+<script type="module">
+import {initializeApp} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
+import {getAuth,onAuthStateChanged,createUserWithEmailAndPassword,signInWithEmailAndPassword,signOut,updateProfile} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
+import {getFirestore,doc,setDoc,getDoc,getDocs,collection,query,where,addDoc,onSnapshot,orderBy,serverTimestamp,updateDoc,limit} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
+
+const firebaseConfig={
+ apiKey:"AIzaSyCf7G0hNMZMMoUItFumTS8_iLjRu3e6b5k",
+ authDomain:"bhatsapp-7aa4d.firebaseapp.com",
+ projectId:"bhatsapp-7aa4d",
+ storageBucket:"bhatsapp-7aa4d.firebasestorage.app",
+ messagingSenderId:"500360836876",
+ appId:"1:500360836876:web:6bea7ec5a77349c984bb29",
+ measurementId:"G-0T8PBVVQYT"
+};
+
+const appFB=initializeApp(firebaseConfig),auth=getAuth(appFB),db=getFirestore(appFB),$=id=>document.getElementById(id);
+const CLOUDINARY_CLOUD_NAME="vgzx6awj";
+const CLOUDINARY_UPLOAD_PRESET="vivekjadhav";
+
+const st={mode:"login",user:null,profile:null,chats:new Map(),active:null,stopChats:null,stopMessages:null,searchTimer:null,streakDays:0,contacts:[],tab:"chats"};
+
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const phoneClean=s=>s.replace(/[^\d+]/g,"");
+const initials=s=>(s||"B").trim().split(/\s+/).slice(0,2).map(x=>x[0]||"").join("").toUpperCase()||"B";
+
+function toast(s){
+ let x=$("toast");x.textContent=s;x.classList.add("show");
+ clearTimeout(toast.t);toast.t=setTimeout(()=>x.classList.remove("show"),3300);
+}
+function authErr(e){
+ return ({"auth/email-already-in-use":"This email already has an account. Log in instead.","auth/invalid-email":"Enter a valid email address.","auth/weak-password":"Password must contain at least 6 characters.","auth/invalid-credential":"Email or password is incorrect.","auth/operation-not-allowed":"Enable Email/Password in Firebase Authentication settings."})[e.code]||e.message||"Something went wrong.";
+}
+
+$("switch").onclick=()=>{
+ st.mode=st.mode==="login"?"register":"login";
+ let r=st.mode==="register";
+ $("name").classList.toggle("hidden",!r);
+ $("namelabel").classList.toggle("hidden",!r);
+ $("name").required=r;
+ $("authsubmit").textContent=r?"Create account":"Log in";
+ $("switchtext").textContent=r?"Already registered?":"New here?";
+ $("switch").textContent=r?"Log in":"Create account";
+ $("autherror").textContent="";
+};
+
+$("authform").onsubmit=async e=>{
+ e.preventDefault();$("authsubmit").disabled=true;$("autherror").textContent="";
+ try{
+  let email=$("email").value.trim().toLowerCase(),password=$("password").value;
+  if(st.mode==="register"){
+   let name=$("name").value.trim();
+   if(name.length<2)throw Error("Enter your name.");
+   let c=await createUserWithEmailAndPassword(auth,email,password);
+   await updateProfile(c.user,{displayName:name});
+   await setDoc(doc(db,"users",c.user.uid),{uid:c.user.uid,name,email,phone:"",createdAt:serverTimestamp(),updatedAt:serverTimestamp()});
+  }else await signInWithEmailAndPassword(auth,email,password);
+ }catch(e){$("autherror").textContent=authErr(e);}
+ finally{$("authsubmit").disabled=false;}
+};
+
+function cleanup(){
+ st.stopChats?.();st.stopMessages?.();st.stopChats=null;st.stopMessages=null;st.active=null;st.chats.clear();
+}
+
+onAuthStateChanged(auth,async user=>{
+ if(!user){
+  st.user=null;cleanup();$("auth").classList.remove("hidden");$("app").classList.add("hidden");return;
+ }
+ st.user=user;
+ try{
+  let ref=doc(db,"users",user.uid),s=await getDoc(ref);
+  if(!s.exists()){
+   await setDoc(ref,{uid:user.uid,name:user.displayName||user.email.split("@")[0],email:user.email,phone:"",createdAt:serverTimestamp()});
+   s=await getDoc(ref);
+  }
+  st.profile={...s.data(),uid:user.uid};
+  await updateDailyStreak(user,st.profile);
+  $("auth").classList.add("hidden");$("app").classList.remove("hidden");
+  renderMe();subscribeChats();setTab("chats");
+  if(!st.profile.photoURL||!st.profile.bio){
+   $("setup-bio").value=st.profile.bio||"";
+   if(!$("setupmodal").open)$("setupmodal").showModal();
+  }
+ }catch(e){toast("Profile load error: "+e.message);}
+});
+
+function setAvatar(el,profile){
+ if(!el)return;
+ el.classList.add("avatar");
+ if(profile?.photoURL){
+  el.innerHTML=`<img src="${esc(profile.photoURL)}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`;
+ }else el.textContent=initials(profile?.name);
+}
+function avatarMarkup(profile){
+ return profile?.photoURL
+  ?`<span class="avatar"><img src="${esc(profile.photoURL)}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%"></span>`
+  :`<span class="avatar">${esc(initials(profile?.name))}</span>`;
+}
+function renderMe(){
+ $("myname").textContent=st.profile?.name||"Student";
+ $("myemail").textContent=st.profile?.bio||st.profile?.email||"";
+ setAvatar($("myavatar"),st.profile);
+ $("streakbtn").innerHTML=`🔥<span class="streak-pill">${st.streakDays}/30</span>`;
+}
+
+function localDateKey(date=new Date()){
+ return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,"0")}-${String(date.getDate()).padStart(2,"0")}`;
+}
+function dayNumber(key){
+ const [y,m,d]=key.split("-").map(Number);
+ return Math.floor(Date.UTC(y,m-1,d)/86400000);
+}
+
+async function updateDailyStreak(user,profile){
+ const now=Date.now();
+ const lastMs=profile.lastCheckInAt?.toMillis?profile.lastCheckInAt.toMillis():0;
+ let days=Number(profile.streakDays||0);
+ if(!lastMs){
+  days=1;
+  await updateDoc(doc(db,"users",user.uid),{lastActiveDate:localDateKey(),streakDays:days,lastCheckInAt:serverTimestamp()});
+ }else if(now-lastMs>=20*60*60*1000){
+  days=(now-lastMs<=48*60*60*1000)?days+1:1;
+  await updateDoc(doc(db,"users",user.uid),{lastActiveDate:localDateKey(),streakDays:days,lastCheckInAt:serverTimestamp()});
+ }
+ st.profile={...profile,streakDays:days};
+ const refreshed=await getDoc(doc(db,"users",user.uid));
+ if(refreshed.exists())st.profile={...st.profile,...refreshed.data()};
+ st.streakDays=Number(st.profile.streakDays||days);
+ return st.streakDays;
+}
+
+async function uploadProfilePhoto(file,uid){
+ if(!file)return st.profile?.photoURL||"";
+ if(!file.type.startsWith("image/"))throw Error("Choose an image file.");
+ if(file.size>5*1024*1024)throw Error("Image must be smaller than 5 MB.");
+ if(CLOUDINARY_CLOUD_NAME==="YOUR_CLOUD_NAME"||CLOUDINARY_UPLOAD_PRESET==="YOUR_UNSIGNED_UPLOAD_PRESET"){
+  throw Error("Set your Cloudinary cloud name and unsigned upload preset in index.html first.");
+ }
+ const form=new FormData();
+ form.append("file",file);
+ form.append("upload_preset",CLOUDINARY_UPLOAD_PRESET);
+ form.append("folder","bhatsapp/profile-pictures");
+ const response=await fetch(`https://api.cloudinary.com/v1_1/${encodeURIComponent(CLOUDINARY_CLOUD_NAME)}/image/upload`,{method:"POST",body:form});
+ const result=await response.json();
+ if(!response.ok||!result.secure_url)throw Error(result.error?.message||"Cloudinary upload failed.");
+ return result.secure_url;
+}
+
+function previewPhoto(inputId,imgId,fallbackId){
+ $(inputId).addEventListener("change",()=>{
+  const file=$(inputId).files?.[0];if(!file)return;
+  if(!file.type.startsWith("image/"))return toast("Choose an image file.");
+  if(file.size>5*1024*1024)return toast("Image must be smaller than 5 MB.");
+  $(imgId).src=URL.createObjectURL(file);
+  $(imgId).classList.remove("hidden");
+  $(fallbackId).classList.add("hidden");
+ });
+}
+previewPhoto("profile-photo","profile-preview","profile-preview-fallback");
+previewPhoto("setup-photo","setup-preview","setup-preview-fallback");
+
+$("logout").onclick=async()=>{cleanup();await signOut(auth);};
+
+$("profilebtn").onclick=()=>{
+ $("pname").value=st.profile?.name||"";
+ $("pphone").value=st.profile?.phone||"";
+ $("pbio").value=st.profile?.bio||"";
+ $("profile-photo").value="";
+ if(st.profile?.photoURL){
+  $("profile-preview").src=st.profile.photoURL;
+  $("profile-preview").classList.remove("hidden");
+  $("profile-preview-fallback").classList.add("hidden");
+ }else{
+  $("profile-preview").classList.add("hidden");
+  $("profile-preview-fallback").classList.remove("hidden");
+  $("profile-preview-fallback").textContent=initials(st.profile?.name);
+ }
+ $("profilemodal").showModal();
+};
+
+$("profileform").onsubmit=async e=>{
+ e.preventDefault();
+ let name=$("pname").value.trim(),bio=$("pbio").value.trim(),phone=phoneClean($("pphone").value),file=$("profile-photo").files?.[0];
+ if(name.length<2||phone.replace(/\D/g,"").length<10)return toast("Enter a valid name and mobile number.");
+ try{
+  let q=await getDocs(query(collection(db,"users"),where("phone","==",phone),limit(2)));
+  if(q.docs.some(d=>d.id!==st.user.uid))return toast("That number is already registered.");
+  let photoURL=file?await uploadProfilePhoto(file,st.user.uid):(st.profile.photoURL||"");
+  await updateDoc(doc(db,"users",st.user.uid),{name,bio,phone,photoURL,updatedAt:serverTimestamp()});
+  await updateProfile(st.user,{displayName:name,photoURL:photoURL||null});
+  st.profile={...st.profile,name,bio,phone,photoURL};
+  renderMe();$("profilemodal").close();toast("Profile saved.");
+ }catch(e){toast("Save failed: "+e.message);}
+};
+
+document.querySelectorAll("[data-close]").forEach(b=>b.onclick=()=>$(b.dataset.close).close());
+
+function label(c){
+ if(c.type==="group")return c.name||"Group";
+ return (c.memberProfiles||[]).find(m=>m.uid!==st.user.uid)?.name||"Direct chat";
+}
+
+function setTab(tab){
+ st.tab=tab;
+ document.querySelectorAll(".nav-btn").forEach(b=>b.classList.toggle("active",b.dataset.tab===tab));
+ if(tab==="settings"){ $("profilebtn").click();return; }
+ if(tab==="bot"){ $("botbtn").click();return; }
+
+ $("listheading").textContent=tab==="groups"?"GROUPS":"CHATS";
+ renderChats();
+ if(window.innerWidth<=720){
+  $("app").classList.remove("chat-open");
+  $("welcome").classList.remove("hidden");
+  $("active").classList.add("hidden");
+ }
+}
+document.querySelectorAll(".nav-btn").forEach(b=>b.addEventListener("click",()=>setTab(b.dataset.tab)));
+
+function subscribeChats(){
+ st.stopChats?.();
+ st.stopChats=onSnapshot(
+  query(collection(db,"chats"),where("members","array-contains",st.user.uid)),
+  s=>{
+   st.chats.clear();
+   s.forEach(d=>st.chats.set(d.id,{id:d.id,...d.data()}));
+   renderChats();
+   if(st.active&&st.chats.has(st.active.id)){
+    st.active=st.chats.get(st.active.id);renderHeader();
+   }
+  },
+  e=>toast("Chat list error: "+e.message)
+ );
+}
+
+function renderChats(){
+ let all=[...st.chats.values()];
+ let a=all.filter(c=>st.tab==="groups"?c.type==="group":c.type!=="group");
+ a.sort((x,y)=>(y.lastMessageAt?.toMillis?.()||0)-(x.lastMessageAt?.toMillis?.()||0));
+ $("chatlist").innerHTML=a.length?a.map(c=>`
+  <button class="chatrow ${st.active?.id===c.id?"selected":""}" data-id="${esc(c.id)}">
+   ${avatarMarkup((c.memberProfiles||[]).find(m=>m.uid!==st.user.uid)||{name:label(c)})}
+   <span class="rowtext"><strong>${esc(label(c))}</strong><small>${esc(c.lastMessage||"Start a conversation")}</small></span>
+  </button>`).join(""):`<div class="empty">${st.tab==="groups"?"No groups yet. Use the + button to create a group.":"No chats yet. Search for a classmate to start chatting."}</div>`;
+ $("chatlist").querySelectorAll("[data-id]").forEach(b=>b.onclick=()=>openChat(b.dataset.id));
+}
+
+async function openChat(id){
+ let c=st.chats.get(id);if(!c)return;
+ st.tab=c.type==="group"?"groups":"chats";
+ document.querySelectorAll(".nav-btn").forEach(b=>b.classList.toggle("active",b.dataset.tab===st.tab));
+ $("listheading").textContent=st.tab==="groups"?"GROUPS":"CHATS";
+ st.stopMessages?.();st.active=c;
+ $("app").classList.add("chat-open");
+ $("welcome").classList.add("hidden");
+ $("active").classList.remove("hidden");
+ renderHeader();renderChats();
+ $("messages").innerHTML='<div class="empty">Loading messages…</div>';
+ st.stopMessages=onSnapshot(
+  query(collection(db,"chats",id,"messages"),orderBy("createdAt","asc"),limit(300)),
+  s=>{
+   if(s.empty){
+    $("messages").innerHTML='<div class="empty">Say hello to start this conversation.</div>';return;
+   }
+   $("messages").innerHTML=s.docs.map(d=>{
+    let m=d.data(),mine=m.senderId===st.user.uid;
+    let t=m.createdAt?.toDate?m.createdAt.toDate().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}):"sending";
+    return `<div class="line ${mine?"mine":""}"><div class="bubble">${mine?"":`<div class="sender">${esc(m.senderName||"Student")}</div>`}<div class="msg">${esc(m.text).replace(/\n/g,"<br>")}</div><span class="time">${t}${mine?" · ✓":""}</span></div></div>`;
+   }).join("");
+   $("messages").scrollTop=$("messages").scrollHeight;
+  },
+  e=>toast("Message listener error: "+e.message)
+ );
+}
+
+function renderHeader(){
+ let c=st.active;if(!c)return;
+ $("chattitle").textContent=label(c);
+ $("chatsub").textContent=c.type==="group"?`${c.members.length} members`:"Private conversation";
+ setAvatar($("chatavatar"),(c.memberProfiles||[]).find(m=>m.uid!==st.user.uid)||{name:label(c)});
+}
+
+$("sendform").onsubmit=async e=>{
+ e.preventDefault();
+ let text=$("message").value.trim(),c=st.active;
+ if(!text||!c)return;
+ $("send").disabled=true;
+ try{
+  await addDoc(collection(db,"chats",c.id,"messages"),{text,senderId:st.user.uid,senderName:st.profile.name||"Student",createdAt:serverTimestamp()});
+  await updateDoc(doc(db,"chats",c.id),{lastMessage:text.slice(0,100),lastMessageAt:serverTimestamp()});
+  $("message").value="";$("message").style.height="auto";
+ }catch(e){toast("Message failed: "+e.message);}
+ finally{$("send").disabled=false;}
+};
+$("message").onkeydown=e=>{
+ if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();$("sendform").requestSubmit();}
+};
+$("message").oninput=()=>{
+ $("message").style.height="auto";
+ $("message").style.height=Math.min($("message").scrollHeight,110)+"px";
+};
+
+$("search").oninput=e=>{
+ clearTimeout(st.searchTimer);
+ let raw=e.target.value.trim();
+ if(raw.length<3){$("results").classList.add("hidden");return;}
+ st.searchTimer=setTimeout(()=>searchUsers(raw),300);
+};
+
+async function searchUsers(raw){
+ let phone=phoneClean(raw);
+ if(phone.replace(/\D/g,"").length<3)return;
+ try{
+  let s=await getDocs(query(collection(db,"users"),where("phone","==",phone),limit(10)));
+  let users=s.docs.map(d=>({...d.data(),uid:d.id})).filter(u=>u.uid!==st.user.uid);
+  $("results").classList.remove("hidden");
+  $("results").innerHTML=users.length?users.map(u=>`
+   <div class="result">
+    <button class="result-open" data-uid="${esc(u.uid)}">${avatarMarkup(u)}<span class="rtext"><strong>${esc(u.name)}</strong><small>${esc(u.phone)}</small></span></button>
+    <button class="add-contact" data-add="${esc(u.uid)}">+ Contact</button>
+   </div>`).join(""):'<div class="empty">No exact number match found.</div>';
+  $("results").querySelectorAll("[data-uid]").forEach(b=>b.onclick=()=>direct(users.find(u=>u.uid===b.dataset.uid)));
+  $("results").querySelectorAll("[data-add]").forEach(b=>b.onclick=()=>saveContact(users.find(u=>u.uid===b.dataset.add)));
+ }catch(e){toast("Search failed: "+e.message);}
+}
+
+async function direct(other){
+ if(!other)return;
+ try{
+  let members=[st.user.uid,other.uid].sort(),id="dm_"+members.join("_"),ref=doc(db,"chats",id),s=await getDoc(ref);
+  if(!s.exists())await setDoc(ref,{
+   type:"direct",name:"",members,
+   memberProfiles:[
+    {uid:st.user.uid,name:st.profile.name,phone:st.profile.phone||"",photoURL:st.profile.photoURL||""},
+    {uid:other.uid,name:other.name||"Student",phone:other.phone||"",photoURL:other.photoURL||""}
+   ],
+   createdBy:st.user.uid,createdAt:serverTimestamp(),lastMessage:"",lastMessageAt:serverTimestamp()
+  });
+  $("results").classList.add("hidden");$("search").value="";
+  let fresh=await getDoc(ref);
+  st.chats.set(id,{id,...fresh.data()});renderChats();openChat(id);
+ }catch(e){toast("Could not start chat: "+e.message);}
+}
+
+$("groupbtn").onclick=()=>{
+ $("gname").value="";$("gphones").value="";$("groupmodal").showModal();
+};
+$("groupform").onsubmit=async e=>{
+ e.preventDefault();let name=$("gname").value.trim();
+ try{
+  let phones=[...new Set($("gphones").value.split(/[,\n]/).map(phoneClean).filter(Boolean))],people=[st.profile];
+  for(let p of phones){
+   let s=await getDocs(query(collection(db,"users"),where("phone","==",p),limit(1)));
+   s.forEach(d=>{if(d.id!==st.user.uid)people.push({...d.data(),uid:d.id});});
+  }
+  people=people.filter((p,i,a)=>a.findIndex(x=>x.uid===p.uid)===i);
+  let members=people.map(p=>p.uid);
+  let memberProfiles=people.map(p=>({uid:p.uid,name:p.name||"Student",phone:p.phone||"",photoURL:p.photoURL||""}));
+  let ref=await addDoc(collection(db,"chats"),{
+   type:"group",name,members,memberProfiles,createdBy:st.user.uid,
+   createdAt:serverTimestamp(),lastMessage:"Group created",lastMessageAt:serverTimestamp()
+  });
+  $("groupmodal").close();toast("Group created.");
+  let s=await getDoc(ref);st.chats.set(ref.id,{id:ref.id,...s.data()});setTab("groups");renderChats();openChat(ref.id);
+ }catch(e){toast("Group creation failed: "+e.message);}
+};
+
+$("back").onclick=()=>{
+ $("app").classList.remove("chat-open");
+ $("welcome").classList.remove("hidden");
+ $("active").classList.add("hidden");
+};
+$("chatinfo").onclick=()=>{
+ if(st.active)toast(st.active.type==="group"?`${st.active.name}: ${(st.active.memberProfiles||[]).map(x=>x.name).join(", ")}`:`Private chat with ${label(st.active)}`);
+};
+
+function contactStorageKey(){return `bhatsapp_contacts_${st.user?.uid||"guest"}`;}
+function loadContacts(){
+ try{st.contacts=JSON.parse(localStorage.getItem(contactStorageKey())||"[]");}
+ catch{st.contacts=[];}
+}
+function saveContact(user){
+ if(!user||user.uid===st.user.uid)return;
+ if(st.contacts.some(c=>c.uid===user.uid))return toast("Already in your contacts.");
+ st.contacts.push({uid:user.uid,name:user.name||"Student",phone:user.phone||"",photoURL:user.photoURL||""});
+ localStorage.setItem(contactStorageKey(),JSON.stringify(st.contacts));
+ toast(`${user.name||"User"} added to contacts.`);
+}
+
+$("contactsbtn").onclick=()=>{
+ loadContacts();
+ $("contactslist").innerHTML=st.contacts.length?st.contacts.map(c=>`
+  <div class="contact-item">${avatarMarkup(c)}<div class="contact-copy"><strong>${esc(c.name)}</strong><small>${esc(c.phone)}</small></div><button data-contact-chat="${esc(c.uid)}">Chat</button></div>`).join(""):'<div class="empty">No contacts saved yet. Search a registered mobile number and tap + Contact.</div>';
+ $("contactslist").querySelectorAll("[data-contact-chat]").forEach(b=>b.onclick=async()=>{
+  const c=st.contacts.find(x=>x.uid===b.dataset.contactChat);if(!c)return;
+  $("contactmodal").close();await direct(c);
+ });
+ $("contactmodal").showModal();
+};
+loadContacts();
+
+$("streakbtn").onclick=()=>toast(`Your daily streak: ${st.streakDays}/30 days. Open Bhatsapp daily to keep it going.`);
+
+function hasUnlockedBot(){
+ const last=st.profile?.lastCheckInAt?.toMillis?st.profile.lastCheckInAt.toMillis():0;
+ return st.streakDays>=30&&last>0&&(Date.now()-last)<36*60*60*1000;
+}
+$("botbtn").onclick=async()=>{
+ if(!hasUnlockedBot())return toast(`Campus Bot unlocks after 30 consecutive daily check-ins. You're at ${st.streakDays}/30.`);
+ $("bot-status").textContent="Unlocked! Your streak is checked before every message.";
+ await loadBotHistory();$("botmodal").showModal();
+};
+
+function botReply(text,mine=false){
+ const el=document.createElement("div");
+ el.className="bot-msg"+(mine?" mine":"");
+ el.textContent=text;$("bot-messages").appendChild(el);
+ $("bot-messages").scrollTop=$("bot-messages").scrollHeight;
+}
+async function loadBotHistory(){
+ if(!hasUnlockedBot())return;
+ try{
+  const snap=await getDocs(query(collection(db,"campusBotChats",st.user.uid,"messages"),orderBy("createdAt","asc"),limit(100)));
+  $("bot-messages").innerHTML="";
+  snap.forEach(d=>{const m=d.data();botReply(m.text,m.role==="user");});
+  if(snap.empty)botReply("Hi! I'm Campus Bot. I can help with study planning, focus, and college-life questions.");
+ }catch(e){toast("Could not load bot history: "+e.message);}
+}
+async function saveBotMessage(text,role){
+ if(!hasUnlockedBot())throw Error("Campus Bot requires a current 30-day streak.");
+ await addDoc(collection(db,"campusBotChats",st.user.uid,"messages"),{text,role,ownerUid:st.user.uid,createdAt:serverTimestamp()});
+}
+function campusAnswer(raw){
+ const q=raw.toLowerCase();
+ if(/study|exam|timetable|schedule|revision/.test(q))return"Try this: choose one topic, study for 25 minutes, take a 5-minute break, then solve 3–5 questions without looking at notes. Repeat and review mistakes.";
+ if(/focus|distract|phone|reels|procrastinat/.test(q))return"Put your phone out of reach, block short-video apps for one study block, and start with just 10 minutes. Make the first task small and specific.";
+ if(/motivat|lazy|habit|discipline|streak/.test(q))return"Don't depend on motivation alone. Set a tiny daily minimum, track it honestly, and protect your sleep. If you miss a day, restart the next day instead of giving up.";
+ if(/stress|anxious|tension|overwhelm/.test(q))return"Write down what is worrying you, separate what you can act on today, and do one small step. A short walk, water, and proper sleep can also help.";
+ if(/hello|hi\b|hey/.test(q))return"Hey! Tell me what you want help with—study planning, focus, habits, or college life.";
+ return"I can offer basic tips for studying, focus, routines, and managing college stress. Tell me more about your question. This starter bot uses built-in replies, not an AI model.";
+}
+$("botform").onsubmit=async e=>{
+ e.preventDefault();
+ if(!hasUnlockedBot())return toast("Complete 30 consecutive daily check-ins to unlock Campus Bot.");
+ const input=$("bot-input"),text=input.value.trim();if(!text)return;
+ const sendButton=$("botform").querySelector("button");sendButton.disabled=true;
+ try{
+  await saveBotMessage(text,"user");botReply(text,true);input.value="";
+  const answer=campusAnswer(text);await saveBotMessage(answer,"bot");botReply(answer);
+ }catch(err){toast("Bot message blocked or failed: "+err.message);}
+ finally{sendButton.disabled=false;}
+};
+
+async function saveSetupProfile(){
+ const bio=$("setup-bio").value.trim(),file=$("setup-photo").files?.[0];
+ try{
+  const photoURL=file?await uploadProfilePhoto(file,st.user.uid):(st.profile.photoURL||"");
+  await updateDoc(doc(db,"users",st.user.uid),{bio,photoURL,updatedAt:serverTimestamp()});
+  if(photoURL)await updateProfile(st.user,{photoURL});
+  st.profile={...st.profile,bio,photoURL};renderMe();$("setupmodal").close();toast("Profile updated.");
+ }catch(e){toast("Could not save profile: "+e.message);}
+}
+$("setupform").onsubmit=async e=>{e.preventDefault();await saveSetupProfile();};
+function skipSetup(){$("setupmodal").close();}
+$("skipsetup").onclick=skipSetup;
+$("skipsetup2").onclick=skipSetup;
+</script>
+</body>
+</html>
